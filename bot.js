@@ -3,15 +3,22 @@ require('dotenv').config();
 
 (async () => {
   // Attivazione browser
-  const browser = await puppeteer.launch({headless: false});
+  const browser = await puppeteer.launch({headless: false, args: [
+    "--disable-gpu",
+    "--disable-dev-shm-usage",
+    "--no-sandbox",
+    "--no-first-run",
+    "--no-zygote",
+    "--single-process",
+  ]});
   const page = await browser.newPage();
   // Navigazione verso pagina prodotto
-  await page.goto('http://testbuy.netsons.org/prodotto/bello-figo-js/', {waitUntil: 'networkidle2'})
+  await page.goto('http://testbuy.netsons.org/prodotto/bello-figo-js/')
   // Aggiunta carrello
+  await page.waitForSelector('[name="add-to-cart"]')
   await page.click('[name="add-to-cart"]')
   // Navigazione verso checkout
   await page.waitForSelector('.woocommerce-message a')
-    //await page.waitForFunction('document.querySelector(".woocommerce-message a").href.includes("carrello")');
   await page.goto('http://testbuy.netsons.org/carrello/')
   // Click bottone checkout
   await page.click('a.checkout-button')
@@ -28,7 +35,6 @@ require('dotenv').config();
   await page.type('input#billing_city', 'Roma')
   // Input select provincia
   await page.waitForFunction('document.querySelector("#select2-billing_state-container").textContent="Roma"')
-    //await page.type('input#select2-billing_state-results', 'Roma')
   // Input telefono
   await page.type('#billing_phone', '3333333333')
   // Input email
@@ -48,7 +54,8 @@ require('dotenv').config();
   // Conferma acquisto paypal
   await popup.waitForSelector('#payment-submit-btn')
   await popup.click('#payment-submit-btn', { waitUntil: "domcontentloaded" })
-  await delay(2000)
   // Chiudere browser
+  await popup.waitForNavigation()
+  await page.waitForNavigation()
   await browser.close();
 })();
