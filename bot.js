@@ -1,4 +1,5 @@
 const puppeteer = require('puppeteer');
+require('dotenv').config();
 
 (async () => {
   // Attivazione browser
@@ -7,10 +8,10 @@ const puppeteer = require('puppeteer');
   // Navigazione verso pagina prodotto
   await page.goto('http://testbuy.netsons.org/prodotto/bello-figo-js/', {waitUntil: 'networkidle2'})
   // Aggiunta carrello
-  await page.click('[name="add-to-cart"]', {waitUntil: 'networkidle0'})
+  await page.click('[name="add-to-cart"]')
   // Navigazione verso checkout
   await page.waitForSelector('.woocommerce-message a')
-  //await page.waitForFunction('document.querySelector(".woocommerce-message a").href.includes("carrello")');
+    //await page.waitForFunction('document.querySelector(".woocommerce-message a").href.includes("carrello")');
   await page.goto('http://testbuy.netsons.org/carrello/')
   // Click bottone checkout
   await page.click('a.checkout-button', {waitUntil: 'networkidle0'})
@@ -26,16 +27,27 @@ const puppeteer = require('puppeteer');
   // Input città
   await page.type('input#billing_city', 'Roma')
   // Input select provincia
-  await page.waitForSelector('input.select2-search__field')
-  await page.type('input.select2-search__field', 'Roma')
+  await page.waitForFunction('document.querySelector("#select2-billing_state-container").textContent="Roma"')
+    //await page.type('input#select2-billing_state-results', 'Roma')
   // Input telefono
-  await page.waitForSelector('#billing_phone')
   await page.type('#billing_phone', '3333333333')
   // Input email
-  await page.type('input#billing_email', 'riccardo.rugi@gmail.com')
+  await page.type('input#billing_email', process.env.PAYPAL_EMAIL)
   // Invia ordine
-  await page.click('a#place_order', {waitUntil: 'networkidle0'})
-
-
-  //await browser.close();
+  const frame = await page.waitForSelector('iframe[title="PayPal"]')
+  const contenutoFrame = await frame.contentFrame()
+  await contenutoFrame.waitForSelector('div.paypal-button-number-0')
+  await contenutoFrame.click('div.paypal-button-number-0')
+  // Popup paypal
+  const pages = await browser.pages()
+  const popup = pages[pages.length - 1]
+  await popup.waitForSelector('#password')
+  await popup.type('#password', process.env.PAYPAL_PASSWORD)
+  // Login paypal
+  await popup.click('#btnLogin', {waitUntil: 'networkidle0'})
+  // Conferma acquisto paypal
+  await popup.waitForSelector('input#password')
+  await popup.type('input#password', process.env.PAYPAL_PASSWORD)
+  // Chiudere browser
+  await browser.close();
 })();
