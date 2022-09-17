@@ -3,7 +3,7 @@ require('dotenv').config();
 
 (async () => {
   // Attivazione browser
-  const browser = await puppeteer.launch({headless: false, args: [
+  const browser = await puppeteer.launch({headless: true, args: [
     "--disable-gpu",
     "--disable-dev-shm-usage",
     "--no-sandbox",
@@ -55,7 +55,6 @@ require('dotenv').config();
   await popup.waitForSelector('#payment-submit-btn')
   await popup.click('#payment-submit-btn', { waitUntil: "domcontentloaded" })
   // Chiudere browser
-  await popup.waitForNavigation()
   await page.waitForNavigation()
   await browser.close();
 })();
