@@ -14,7 +14,7 @@ require('dotenv').config();
     //await page.waitForFunction('document.querySelector(".woocommerce-message a").href.includes("carrello")');
   await page.goto('http://testbuy.netsons.org/carrello/')
   // Click bottone checkout
-  await page.click('a.checkout-button', {waitUntil: 'networkidle0'})
+  await page.click('a.checkout-button')
   // Input nome
   await page.waitForSelector('input#billing_first_name')
   await page.type('input#billing_first_name', 'Riccardo')
@@ -43,11 +43,12 @@ require('dotenv').config();
   const popup = pages[pages.length - 1]
   await popup.waitForSelector('#password')
   await popup.type('#password', process.env.PAYPAL_PASSWORD)
-  // Login paypal
-  await popup.click('#btnLogin', {waitUntil: 'networkidle0'})
+  // Conferma Login
+  await popup.click('#btnLogin')
   // Conferma acquisto paypal
-  await popup.waitForSelector('input#password')
-  await popup.type('input#password', process.env.PAYPAL_PASSWORD)
+  await popup.waitForSelector('#payment-submit-btn')
+  await popup.click('#payment-submit-btn', { waitUntil: "domcontentloaded" })
+  await delay(2000)
   // Chiudere browser
   await browser.close();
 })();
